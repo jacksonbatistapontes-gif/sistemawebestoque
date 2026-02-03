@@ -11,5 +11,5 @@ Abra o arquivo `index.html` no navegador ou sirva o diretório com qualquer serv
 - Dashboard com indicadores de estoque.
 - Cadastro de materiais com unidade, fornecedor e níveis mínimos.
 - Movimentações rápidas de entrada/saída.
-- Filtros e busca integrada.
+- Filtros, menus e busca integrada.
 - Persistência local via `localStorage`.

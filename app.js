@@ -55,10 +55,14 @@ const totalItems = document.getElementById("totalItems");
 const totalStock = document.getElementById("totalStock");
 const criticalItems = document.getElementById("criticalItems");
 const lastMove = document.getElementById("lastMove");
+const movementRows = document.getElementById("movementRows");
+const avgConsumption = document.getElementById("avgConsumption");
+const topItem = document.getElementById("topItem");
 
 const itemModal = document.getElementById("itemModal");
 const moveModal = document.getElementById("moveModal");
 const openModalButton = document.getElementById("openModal");
+const openModalTopButton = document.getElementById("openModalTop");
 const closeModalButton = document.getElementById("closeModal");
 const cancelModalButton = document.getElementById("cancelModal");
 const itemForm = document.getElementById("itemForm");
@@ -73,6 +77,7 @@ const moveForm = document.getElementById("moveForm");
 let inventory = loadInventory();
 let lastMoveEntry = null;
 let activeMoveType = "entrada";
+let movements = loadMovements();
 
 function loadInventory() {
   const saved = localStorage.getItem(STORAGE_KEY);
@@ -88,6 +93,39 @@ function loadInventory() {
 
 function saveInventory() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(inventory));
+}
+
+function loadMovements() {
+  const saved = localStorage.getItem(`${STORAGE_KEY}-movements`);
+  if (saved) {
+    try {
+      return JSON.parse(saved);
+    } catch (error) {
+      console.error("Erro ao carregar movimentações", error);
+    }
+  }
+  return [
+    {
+      date: "2024-02-02T09:10:00",
+      itemId: "MAT-004",
+      type: "entrada",
+      amount: 10,
+      responsible: "Equipe Hidráulica",
+      notes: "Reposição do fornecedor",
+    },
+    {
+      date: "2024-02-02T07:40:00",
+      itemId: "MAT-002",
+      type: "saida",
+      amount: 20,
+      responsible: "Obra Jardim Sul",
+      notes: "Estrutura da laje",
+    },
+  ];
+}
+
+function saveMovements() {
+  localStorage.setItem(`${STORAGE_KEY}-movements`, JSON.stringify(movements));
 }
 
 function formatDate(value) {
@@ -136,6 +174,39 @@ function renderSummary() {
   totalStock.textContent = inventory.reduce((sum, item) => sum + item.stock, 0);
   criticalItems.textContent = inventory.filter((item) => item.stock <= item.minimum).length;
   lastMove.textContent = lastMoveEntry ? formatDate(lastMoveEntry.date) : "-";
+}
+
+function renderMovements() {
+  if (!movementRows) return;
+  movementRows.innerHTML = "";
+  movements.slice(0, 8).forEach((move) => {
+    const item = inventory.find((entry) => entry.id === move.itemId);
+    const row = document.createElement("tr");
+    row.innerHTML = `
+      <td>${formatDate(move.date)}</td>
+      <td>${item ? item.name : "Item removido"}</td>
+      <td><span class="status-pill ${move.type === "entrada" ? "ok" : "out"}">${move.type}</span></td>
+      <td>${move.amount}</td>
+      <td>${move.responsible}</td>
+      <td>${move.notes || "-"}</td>
+    `;
+    movementRows.appendChild(row);
+  });
+}
+
+function renderReports() {
+  if (!avgConsumption || !topItem) return;
+  const totalOut = movements.filter((move) => move.type === "saida");
+  const totalAmount = totalOut.reduce((sum, move) => sum + move.amount, 0);
+  avgConsumption.textContent = totalOut.length ? `${Math.round(totalAmount / totalOut.length)} un.` : "-";
+
+  const counts = totalOut.reduce((acc, move) => {
+    acc[move.itemId] = (acc[move.itemId] || 0) + move.amount;
+    return acc;
+  }, {});
+  const topId = Object.keys(counts).sort((a, b) => counts[b] - counts[a])[0];
+  const top = inventory.find((item) => item.id === topId);
+  topItem.textContent = top ? `${top.name} (${counts[topId]} un.)` : "-";
 }
 
 function renderTable() {
@@ -190,6 +261,8 @@ function updateView() {
   buildFilters();
   renderSummary();
   renderTable();
+  renderMovements();
+  renderReports();
   updateMoveSelect();
 }
 
@@ -254,7 +327,19 @@ function handleMoveSubmit(event) {
     responsible: data.responsible,
     notes: data.notes,
   };
+  movements = [
+    {
+      date: item.updatedAt,
+      itemId: item.id,
+      type: activeMoveType,
+      amount: amount,
+      responsible: data.responsible,
+      notes: data.notes,
+    },
+    ...movements,
+  ];
   saveInventory();
+  saveMovements();
   moveForm.reset();
   toggleModal(moveModal, false);
   updateView();
@@ -276,6 +361,7 @@ locationFilter.addEventListener("change", renderTable);
 statusFilter.addEventListener("change", renderTable);
 
 openModalButton.addEventListener("click", () => toggleModal(itemModal, true));
+openModalTopButton.addEventListener("click", () => toggleModal(itemModal, true));
 closeModalButton.addEventListener("click", () => toggleModal(itemModal, false));
 cancelModalButton.addEventListener("click", () => toggleModal(itemModal, false));
 itemModal.addEventListener("click", (event) => {
@@ -285,6 +371,8 @@ itemModal.addEventListener("click", (event) => {
 resetDataButton.addEventListener("click", () => {
   inventory = [...DEFAULT_DATA];
   saveInventory();
+  movements = loadMovements();
+  saveMovements();
   updateView();
 });
 
