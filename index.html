@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Almoxarifado - Controle de Estoque</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div class="app">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Sistema web</p>
+          <h1>Controle de Estoque do Almoxarifado</h1>
+          <p class="subtitle">
+            Gestão de materiais de construção civil com acompanhamento de entradas, saídas e
+            níveis críticos.
+          </p>
+        </div>
+        <div class="topbar__actions">
+          <button class="btn btn-outline" id="resetData">Restaurar dados</button>
+          <button class="btn btn-primary" id="openModal">Novo item</button>
+        </div>
+      </header>
+
+      <section class="summary">
+        <article class="summary-card">
+          <h3>Total de itens</h3>
+          <p id="totalItems">0</p>
+          <span>materiais cadastrados</span>
+        </article>
+        <article class="summary-card">
+          <h3>Estoque total</h3>
+          <p id="totalStock">0</p>
+          <span>unidades disponíveis</span>
+        </article>
+        <article class="summary-card alert">
+          <h3>Críticos</h3>
+          <p id="criticalItems">0</p>
+          <span>abaixo do mínimo</span>
+        </article>
+        <article class="summary-card">
+          <h3>Última movimentação</h3>
+          <p id="lastMove">-</p>
+          <span>registro recente</span>
+        </article>
+      </section>
+
+      <section class="filters">
+        <div class="search">
+          <input
+            id="searchInput"
+            type="search"
+            placeholder="Buscar por material, categoria ou fornecedor"
+          />
+        </div>
+        <div class="filter-group">
+          <select id="categoryFilter">
+            <option value="">Todas as categorias</option>
+          </select>
+          <select id="locationFilter">
+            <option value="">Todos os locais</option>
+          </select>
+          <select id="statusFilter">
+            <option value="">Todos os status</option>
+            <option value="ok">Disponível</option>
+            <option value="low">Baixo</option>
+            <option value="out">Sem estoque</option>
+          </select>
+        </div>
+      </section>
+
+      <section class="table">
+        <div class="table-header">
+          <h2>Materiais cadastrados</h2>
+          <div class="table-header__legend">
+            <span class="legend ok">Disponível</span>
+            <span class="legend low">Baixo</span>
+            <span class="legend out">Sem estoque</span>
+          </div>
+        </div>
+        <div class="table-content">
+          <table>
+            <thead>
+              <tr>
+                <th>Material</th>
+                <th>Categoria</th>
+                <th>Local</th>
+                <th>Estoque</th>
+                <th>Mínimo</th>
+                <th>Fornecedor</th>
+                <th>Atualizado</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody id="inventoryRows"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="actions">
+        <div>
+          <h2>Movimentações rápidas</h2>
+          <p>Registre entradas e saídas do estoque em poucos cliques.</p>
+        </div>
+        <div class="actions__buttons">
+          <button class="btn btn-outline" data-move="entrada">Registrar entrada</button>
+          <button class="btn btn-outline" data-move="saida">Registrar saída</button>
+        </div>
+      </section>
+
+      <footer class="footer">
+        <p>
+          Desenvolvido para controle de almoxarifado de obras: acompanhando materiais, níveis
+          mínimos e fluxo diário.
+        </p>
+      </footer>
+    </div>
+
+    <div class="modal" id="itemModal" aria-hidden="true">
+      <div class="modal__content">
+        <header>
+          <h2>Novo item</h2>
+          <button class="icon-button" id="closeModal" aria-label="Fechar">✕</button>
+        </header>
+        <form id="itemForm">
+          <div class="form-grid">
+            <label>
+              Material
+              <input name="name" required placeholder="Ex.: Cimento CP-II" />
+            </label>
+            <label>
+              Categoria
+              <input name="category" required placeholder="Ex.: Cimentos" />
+            </label>
+            <label>
+              Localização
+              <input name="location" required placeholder="Ex.: Galpão A" />
+            </label>
+            <label>
+              Unidade
+              <input name="unit" required placeholder="Ex.: saco" />
+            </label>
+            <label>
+              Estoque atual
+              <input name="stock" type="number" min="0" required placeholder="Ex.: 120" />
+            </label>
+            <label>
+              Mínimo
+              <input name="minimum" type="number" min="0" required placeholder="Ex.: 40" />
+            </label>
+            <label>
+              Fornecedor
+              <input name="supplier" required placeholder="Ex.: Construmax" />
+            </label>
+          </div>
+          <div class="form-actions">
+            <button type="button" class="btn btn-outline" id="cancelModal">Cancelar</button>
+            <button type="submit" class="btn btn-primary">Salvar item</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div class="modal" id="moveModal" aria-hidden="true">
+      <div class="modal__content">
+        <header>
+          <h2 id="moveTitle">Movimentar estoque</h2>
+          <button class="icon-button" id="closeMoveModal" aria-label="Fechar">✕</button>
+        </header>
+        <form id="moveForm">
+          <label>
+            Selecione o item
+            <select name="item" required></select>
+          </label>
+          <label>
+            Quantidade
+            <input name="amount" type="number" min="1" required placeholder="Ex.: 10" />
+          </label>
+          <label>
+            Responsável
+            <input name="responsible" required placeholder="Ex.: Carlos Oliveira" />
+          </label>
+          <label>
+            Observações
+            <textarea name="notes" rows="3" placeholder="Ex.: Entrega do fornecedor"></textarea>
+          </label>
+          <div class="form-actions">
+            <button type="button" class="btn btn-outline" id="cancelMoveModal">Cancelar</button>
+            <button type="submit" class="btn btn-primary">Registrar movimentação</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>
