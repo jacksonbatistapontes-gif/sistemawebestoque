@@ -1,0 +1,311 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Almoxarifado - Controle de Estoque</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div class="layout">
+      <aside class="sidebar">
+        <div class="brand">
+          <span class="brand__tag">Construção civil</span>
+          <h1>Almoxarifado</h1>
+          <p>Sistema web de controle de estoque de obras.</p>
+        </div>
+        <nav class="menu">
+          <a class="menu__item" href="#dashboard">Dashboard</a>
+          <a class="menu__item" href="#cadastros">Cadastros</a>
+          <a class="menu__item" href="#entradas-saidas">Entradas & Saídas</a>
+          <a class="menu__item" href="#relatorios">Relatórios</a>
+          <a class="menu__item" href="#ferramentas">Ferramentas</a>
+        </nav>
+        <div class="sidebar__actions">
+          <button class="btn btn-outline" id="resetData">Restaurar dados</button>
+          <button class="btn btn-primary" id="openModal">Novo item</button>
+        </div>
+      </aside>
+
+      <main class="app">
+        <header class="topbar" id="dashboard">
+          <div>
+            <p class="eyebrow">Sistema web</p>
+            <h2>Controle de Estoque do Almoxarifado</h2>
+            <p class="subtitle">
+              Gestão de materiais, ferramentas e insumos de obra com acompanhamento de entradas,
+              saídas e níveis críticos.
+            </p>
+          </div>
+        </header>
+
+        <section class="summary">
+          <article class="summary-card">
+            <h3>Total de itens</h3>
+            <p id="totalItems">0</p>
+            <span>materiais cadastrados</span>
+          </article>
+          <article class="summary-card">
+            <h3>Estoque total</h3>
+            <p id="totalStock">0</p>
+            <span>unidades disponíveis</span>
+          </article>
+          <article class="summary-card alert">
+            <h3>Críticos</h3>
+            <p id="criticalItems">0</p>
+            <span>abaixo do mínimo</span>
+          </article>
+          <article class="summary-card">
+            <h3>Última movimentação</h3>
+            <p id="lastMove">-</p>
+            <span>registro recente</span>
+          </article>
+        </section>
+
+        <section class="section-card" id="cadastros">
+          <div class="section-header">
+            <div>
+              <h2>Cadastros</h2>
+              <p>Cadastre materiais, fornecedores, locais e equipes de obra.</p>
+            </div>
+            <button class="btn btn-primary" id="openModalTop">Novo material</button>
+          </div>
+          <div class="quick-cards">
+            <article class="quick-card">
+              <h3>Materiais</h3>
+              <p>Controle insumos de alvenaria, acabamento e estrutura.</p>
+              <span>120 itens ativos</span>
+            </article>
+            <article class="quick-card">
+              <h3>Ferramentas</h3>
+              <p>Registro de ferramentas compartilhadas e de uso diário.</p>
+              <span>35 itens ativos</span>
+            </article>
+            <article class="quick-card">
+              <h3>Fornecedores</h3>
+              <p>Cadastro de parceiros com prazo e condições comerciais.</p>
+              <span>18 fornecedores</span>
+            </article>
+            <article class="quick-card">
+              <h3>Locais</h3>
+              <p>Obras, canteiros e depósitos monitorados em tempo real.</p>
+              <span>7 locais</span>
+            </article>
+          </div>
+        </section>
+
+        <section class="filters">
+          <div class="search">
+            <input
+              id="searchInput"
+              type="search"
+              placeholder="Buscar por material, categoria ou fornecedor"
+            />
+          </div>
+          <div class="filter-group">
+            <select id="categoryFilter">
+              <option value="">Todas as categorias</option>
+            </select>
+            <select id="locationFilter">
+              <option value="">Todos os locais</option>
+            </select>
+            <select id="statusFilter">
+              <option value="">Todos os status</option>
+              <option value="ok">Disponível</option>
+              <option value="low">Baixo</option>
+              <option value="out">Sem estoque</option>
+            </select>
+          </div>
+        </section>
+
+        <section class="table">
+          <div class="table-header">
+            <h2>Materiais cadastrados</h2>
+            <div class="table-header__legend">
+              <span class="legend ok">Disponível</span>
+              <span class="legend low">Baixo</span>
+              <span class="legend out">Sem estoque</span>
+            </div>
+          </div>
+          <div class="table-content">
+            <table>
+              <thead>
+                <tr>
+                  <th>Material</th>
+                  <th>Categoria</th>
+                  <th>Local</th>
+                  <th>Estoque</th>
+                  <th>Mínimo</th>
+                  <th>Fornecedor</th>
+                  <th>Atualizado</th>
+                  <th>Ações</th>
+                </tr>
+              </thead>
+              <tbody id="inventoryRows"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="section-card" id="entradas-saidas">
+          <div class="section-header">
+            <div>
+              <h2>Entradas & Saídas</h2>
+              <p>Registre movimentações por obra, equipe e responsável técnico.</p>
+            </div>
+            <div class="actions__buttons">
+              <button class="btn btn-outline" data-move="entrada">Registrar entrada</button>
+              <button class="btn btn-outline" data-move="saida">Registrar saída</button>
+            </div>
+          </div>
+          <div class="table-content">
+            <table>
+              <thead>
+                <tr>
+                  <th>Data</th>
+                  <th>Material</th>
+                  <th>Tipo</th>
+                  <th>Quantidade</th>
+                  <th>Responsável</th>
+                  <th>Observações</th>
+                </tr>
+              </thead>
+              <tbody id="movementRows"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="section-card" id="relatorios">
+          <div class="section-header">
+            <div>
+              <h2>Relatórios</h2>
+              <p>Indicadores para planejamento de compras e reposição de obras.</p>
+            </div>
+          </div>
+          <div class="report-grid">
+            <article class="report-card">
+              <h3>Consumo médio mensal</h3>
+              <p id="avgConsumption">-</p>
+              <span>com base nos últimos registros</span>
+            </article>
+            <article class="report-card">
+              <h3>Itens com maior saída</h3>
+              <p id="topItem">-</p>
+              <span>últimos 30 dias</span>
+            </article>
+            <article class="report-card">
+              <h3>Requisições abertas</h3>
+              <p>6</p>
+              <span>aguardando aprovação</span>
+            </article>
+          </div>
+        </section>
+
+        <section class="section-card" id="ferramentas">
+          <div class="section-header">
+            <div>
+              <h2>Ferramentas</h2>
+              <p>Recursos rápidos para o dia a dia do almoxarifado.</p>
+            </div>
+          </div>
+          <div class="tools-grid">
+            <button class="tool-card">Checklist diário de conferência</button>
+            <button class="tool-card">Solicitar compra emergencial</button>
+            <button class="tool-card">Mapa de alocação de materiais</button>
+            <button class="tool-card">Agenda de entregas</button>
+          </div>
+        </section>
+
+        <footer class="footer">
+          <p>
+            Desenvolvido para controle de almoxarifado de obras: acompanhando materiais, níveis
+            mínimos e fluxo diário.
+          </p>
+        </footer>
+      </main>
+    </div>
+
+    <div class="modal" id="itemModal" aria-hidden="true">
+      <div class="modal__content">
+        <header>
+          <h2>Novo item</h2>
+          <button class="icon-button" id="closeModal" aria-label="Fechar">✕</button>
+        </header>
+        <form id="itemForm">
+          <div class="form-grid">
+            <label>
+              Material
+              <input name="name" required placeholder="Ex.: Cimento CP-II" />
+            </label>
+            <label>
+              Categoria
+              <input name="category" required placeholder="Ex.: Cimentos" />
+            </label>
+            <label>
+              Localização
+              <input name="location" required placeholder="Ex.: Galpão A" />
+            </label>
+            <label>
+              Unidade
+              <input name="unit" required placeholder="Ex.: saco" />
+            </label>
+            <label>
+              Estoque atual
+              <input name="stock" type="number" min="0" required placeholder="Ex.: 120" />
+            </label>
+            <label>
+              Mínimo
+              <input name="minimum" type="number" min="0" required placeholder="Ex.: 40" />
+            </label>
+            <label>
+              Fornecedor
+              <input name="supplier" required placeholder="Ex.: Construmax" />
+            </label>
+          </div>
+          <div class="form-actions">
+            <button type="button" class="btn btn-outline" id="cancelModal">Cancelar</button>
+            <button type="submit" class="btn btn-primary">Salvar item</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div class="modal" id="moveModal" aria-hidden="true">
+      <div class="modal__content">
+        <header>
+          <h2 id="moveTitle">Movimentar estoque</h2>
+          <button class="icon-button" id="closeMoveModal" aria-label="Fechar">✕</button>
+        </header>
+        <form id="moveForm">
+          <label>
+            Selecione o item
+            <select name="item" required></select>
+          </label>
+          <label>
+            Quantidade
+            <input name="amount" type="number" min="1" required placeholder="Ex.: 10" />
+          </label>
+          <label>
+            Responsável
+            <input name="responsible" required placeholder="Ex.: Carlos Oliveira" />
+          </label>
+          <label>
+            Observações
+            <textarea name="notes" rows="3" placeholder="Ex.: Entrega do fornecedor"></textarea>
+          </label>
+          <div class="form-actions">
+            <button type="button" class="btn btn-outline" id="cancelMoveModal">Cancelar</button>
+            <button type="submit" class="btn btn-primary">Registrar movimentação</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>
